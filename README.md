@@ -19,7 +19,7 @@ procrastino/
  
 ## 🚀 Lancer le projet
  
-### Option 1 — Python (recommandé)
+### Python 
  
 ```bash
 cd chemin/vers/procrastino
