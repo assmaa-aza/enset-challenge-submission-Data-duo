@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ProcrastiNO</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0e1a;
+  --surface:#0f1522;
+  --card:#131929;
+  --border:#1e2d45;
+  --border2:#243352;
+  --cyan:#00d4ff;
+  --green:#00ff88;
+  --amber:#f59e0b;
+  --red:#ff4444;
+  --purple:#a78bfa;
+  --orange:#ff6b2b;
+  --text:#c8d8f0;
+  --muted:#4a6080;
+  --faint:#2a3a55;
+}
+body{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-size:13px;
+}
+
+/* ── Topbar ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 28px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:relative;
+  z-index:2;
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-logo{width:40px;height:40px;object-fit:contain;}
+.brand-name{
+  font-size:20px;font-weight:700;letter-spacing:0.02em;
+}
+.brand-name .procr{color:#00d4ff;}
+.brand-name .asti{color:#ffffff;}
+.brand-name .no{
+  color:#ff4444;
+  position:relative;
+}
+.brand-name .no::after{
+  content:'';
+  position:absolute;
+  bottom:-1px;left:0;right:0;
+  height:2px;
+  background:var(--green);
+  border-radius:2px;
+}
+.version{
+  font-size:10px;padding:2px 7px;
+  border:1px solid var(--border2);
+  border-radius:4px;color:var(--muted);
+}
+.status-badge{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:600;letter-spacing:0.1em;
+}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.status-label{color:var(--green);}
+
+/* ── Onboarding overlay ── */
+#onboarding{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(5,8,18,0.97);
+  backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;
+}
+.onboard-box{
+  width:min(560px,92vw);
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 0 60px rgba(0,212,255,0.08);
+  display:flex;flex-direction:column;
+  max-height:90vh;
+}
+.onboard-header{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.onboard-logo{width:36px;height:36px;object-fit:contain;}
+.onboard-title{
+  font-size:15px;font-weight:700;
+}
+.onboard-title .procr{color:var(--cyan);}
+.onboard-title .no{color:var(--red);}
+.onboard-subtitle{font-size:10px;color:var(--muted);}
+.step-indicator{
+  margin-left:auto;display:flex;gap:5px;
+}
+.step-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--faint);transition:background 0.3s;
+}
+.step-dot.done{background:var(--green);}
+.step-dot.active{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+
+.chat-history{
+  flex:1;overflow-y:auto;
+  padding:20px;
+  display:flex;flex-direction:column;
+  gap:12px;
+  min-height:220px;max-height:340px;
+}
+.bubble{
+  max-width:85%;
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:12px;
+  line-height:1.7;
+  white-space:pre-wrap;
+}
+.bubble.bot{
+  background:rgba(0,212,255,0.08);
+  border:1px solid rgba(0,212,255,0.2);
+  color:#c8d8f0;
+  border-radius:4px 12px 12px 12px;
+  align-self:flex-start;
+}
+.bubble.user{
+  background:rgba(0,255,136,0.08);
+  border:1px solid rgba(0,255,136,0.2);
+  color:#b0f0d0;
+  border-radius:12px 4px 12px 12px;
+  align-self:flex-end;
+}
+.bubble.plan{
+  background:rgba(167,139,250,0.08);
+  border:1px solid rgba(167,139,250,0.25);
+  color:#d4c8f8;
+  border-radius:4px 12px 12px 12px;
+  align-self:flex-start;
+  font-size:11.5px;
+}
+.bot-typing{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 14px;
+  background:rgba(0,212,255,0.05);
+  border:1px solid rgba(0,212,255,0.12);
+  border-radius:4px 12px 12px 12px;
+  align-self:flex-start;
+  font-size:11px;color:var(--muted);
+}
+.typing-dots{display:flex;gap:4px;}
+.typing-dots span{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--cyan);opacity:0.6;
+  animation:dot-pulse 1.2s infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}
+.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes dot-pulse{0%,80%,100%{opacity:0.2;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
+
+.onboard-input-row{
+  display:flex;gap:8px;
+  padding:14px 20px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+}
+.onboard-input{
+  flex:1;background:var(--bg);
+  border:1px solid var(--border2);
+  color:var(--text);
+  border-radius:8px;padding:9px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;
+  transition:border-color 0.15s;
+}
+.onboard-input:focus{border-color:var(--cyan);}
+.onboard-input::placeholder{color:var(--muted);}
+.onboard-input:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-ob-send{
+  background:var(--cyan);color:#000;border:none;border-radius:8px;
+  padding:9px 18px;font-family:'JetBrains Mono',monospace;font-size:12px;
+  font-weight:700;cursor:pointer;transition:all 0.15s;white-space:nowrap;
+}
+.btn-ob-send:hover{background:#00b8e0;}
+.btn-ob-send:disabled{background:var(--faint);color:var(--muted);cursor:not-allowed;}
+.btn-start-session{
+  width:100%;margin:0 20px 16px;width:calc(100% - 40px);
+  background:linear-gradient(90deg,var(--cyan),var(--green));
+  color:#000;border:none;border-radius:8px;
+  padding:12px;font-family:'JetBrains Mono',monospace;font-size:13px;
+  font-weight:700;cursor:pointer;letter-spacing:0.08em;
+  transition:opacity 0.15s;display:none;
+}
+.btn-start-session:hover{opacity:0.88;}
+
+/* ── Main dashboard (hidden during onboarding) ── */
+#dashboard{display:none;}
+.main{padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+
+/* ── Agent cards ── */
+.agents-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.agent-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.agent-card.active{border-color:var(--cyan);box-shadow:0 0 16px rgba(0,212,255,0.15);}
+.agent-card.warning{border-color:var(--amber);box-shadow:0 0 16px rgba(245,158,11,0.15);}
+.agent-card.alert{border-color:var(--red);box-shadow:0 0 16px rgba(255,68,68,0.15);}
+.agent-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.agent-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#e0eeff;}
+.agent-icon{font-size:16px;}
+.badge{font-size:9px;font-weight:700;letter-spacing:0.1em;padding:2px 8px;border-radius:4px;border:1px solid;}
+.badge-standby{color:var(--muted);border-color:var(--faint);}
+.badge-active{color:var(--cyan);border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);}
+.badge-alert{color:var(--red);border-color:rgba(255,68,68,0.4);background:rgba(255,68,68,0.08);}
+.badge-warn{color:var(--amber);border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.08);}
+.agent-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.agent-stat{font-size:11px;}
+.stat-cyan{color:var(--cyan);}
+.stat-green{color:var(--green);}
+.stat-amber{color:var(--amber);}
+.stat-red{color:var(--red);}
+
+/* ── Bottom grid ── */
+.bottom-grid{display:grid;grid-template-columns:280px 1fr;gap:14px;align-items:start;}
+
+/* ── Timer panel ── */
+.timer-panel{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.timer-ring{position:relative;width:180px;height:180px;}
+.timer-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--faint);stroke-width:6;}
+.ring-fill{fill:none;stroke:var(--cyan);stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:502;stroke-dashoffset:502;transition:stroke-dashoffset 1s linear;}
+.ring-fill.break-mode{stroke:var(--green);}
+.timer-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.timer-display{font-size:40px;font-weight:700;color:#fff;letter-spacing:2px;font-variant-numeric:tabular-nums;}
+.timer-mode{font-size:10px;font-weight:600;letter-spacing:0.15em;color:var(--cyan);margin-top:4px;}
+.timer-mode.break{color:var(--green);}
+.btn-row{display:flex;gap:10px;width:100%;}
+.btn{flex:1;padding:10px;border-radius:6px;font-family:'JetBrains Mono',monospace;
+  font-size:13px;font-weight:600;cursor:pointer;border:none;letter-spacing:0.05em;transition:all 0.15s;}
+.btn-start{background:var(--cyan);color:#000;}
+.btn-start:hover{background:#00b8e0;}
+.btn-start:disabled{background:var(--faint);color:var(--muted);cursor:not-allowed;}
+.btn-reset{background:transparent;color:var(--muted);border:1px solid var(--border2);}
+.btn-reset:hover{background:var(--faint);color:var(--text);}
+
+/* ── Right panel ── */
+.right-panel{display:flex;flex-direction:column;gap:14px;}
+
+/* ── Log + chat panels ── */
+.log-panel,.arch-panel,.input-panel{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;
+}
+.panel-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.panel-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+.panel-title{font-size:13px;font-weight:600;color:#e0eeff;}
+.log-body{min-height:100px;max-height:130px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
+.log-entry{font-size:11px;line-height:1.6;}
+.log-time{color:var(--muted);}
+.log-agent-behavior{color:var(--cyan);}
+.log-agent-planner{color:var(--purple);}
+.log-agent-motivation{color:var(--green);}
+.log-agent-control{color:var(--red);}
+.log-msg{color:var(--text);}
+.log-empty{color:var(--muted);font-size:11px;}
+
+/* ── Architecture panel ── */
+.arch-body{display:flex;flex-direction:column;gap:5px;}
+.arch-line{font-size:11px;line-height:1.7;}
+.arch-prefix{color:var(--muted);}
+.arch-name-behavior{color:var(--cyan);}
+.arch-name-planner{color:var(--purple);}
+.arch-name-motivation{color:var(--green);}
+.arch-name-control{color:var(--red);}
+.arch-arrow{color:var(--muted);}
+.arch-desc{color:#8aa0c0;}
+.arch-note{font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--faint);}
+
+/* ── Runtime chat ── */
+.input-label{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.input-row{display:flex;gap:8px;}
+.chat-input{
+  flex:1;background:var(--surface);border:1px solid var(--border2);
+  color:var(--text);border-radius:6px;padding:9px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;
+  transition:border-color 0.15s;
+}
+.chat-input:focus{border-color:var(--cyan);}
+.chat-input::placeholder{color:var(--muted);}
+.btn-send{
+  background:var(--cyan);color:#000;border:none;border-radius:6px;
+  padding:9px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;
+  font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap;
+}
+.btn-send:hover{background:#00b8e0;}
+
+/* ── Plan pill shown in dashboard ── */
+.plan-pill{
+  background:rgba(167,139,250,0.07);
+  border:1px solid rgba(167,139,250,0.2);
+  border-radius:8px;padding:10px 16px;
+  font-size:11px;color:#b8a8e8;
+  display:flex;gap:20px;flex-wrap:wrap;
+}
+.plan-pill span{white-space:nowrap;}
+.plan-pill strong{color:#d4c8f8;}
+
+/* ── Blocker overlay ── */
+.blocker{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,0.96);backdrop-filter:blur(12px);
+  display:none;align-items:center;justify-content:center;
+}
+.blocker.show{display:flex;}
+.blocker-box{text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;max-width:340px;}
+.lock-ring{
+  width:72px;height:72px;border-radius:50%;
+  border:2px solid rgba(255,68,68,0.5);
+  background:rgba(255,68,68,0.08);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  animation:pulse-red 2s infinite;
+}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(255,68,68,0.4);}50%{box-shadow:0 0 0 14px rgba(255,68,68,0);}}
+.blocker-title{font-size:28px;font-weight:700;color:#fff;letter-spacing:0.05em;}
+.blocker-sub{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.6;}
+.blocker-time{font-size:56px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:3px;}
+.blocker-bar-wrap{width:240px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px;}
+.blocker-bar{height:100%;background:var(--red);border-radius:2px;transition:width 1s linear;}
+.override-btn{
+  margin-top:4px;background:transparent;
+  border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);
+  padding:8px 22px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;
+  transition:all 0.15s;
+}
+.override-btn:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--faint);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- ── Agents (loaded as inline scripts below) ── -->
+
+<!-- ── Blocker overlay ── -->
+<div class="blocker" id="blocker">
+  <div class="blocker-box">
+    <div class="lock-ring">🔒</div>
+    <div class="blocker-title">ACCESS DENIED</div>
+    <div class="blocker-sub" id="bl-sub">Focus session in progress.<br>Distracting apps are blocked.</div>
+    <div class="blocker-time" id="bl-time">25:00</div>
+    <div class="blocker-bar-wrap"><div class="blocker-bar" id="bl-bar" style="width:0%"></div></div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.2);">Session ends automatically</div>
+    <button class="override-btn" onclick="emergencyOverride()">Emergency override (<span id="bl-overrides">3</span> left)</button>
+  </div>
+</div>
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="brand">
+    <!-- Inline SVG logo matching the ProcrastiNO robot/checklist design -->
+    <svg class="brand-logo" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <!-- Red circle background -->
+      <circle cx="40" cy="40" r="38" fill="#cc1111" opacity="0.9"/>
+      <!-- White inner circle -->
+      <circle cx="40" cy="40" r="30" fill="#1a2a4a"/>
+      <!-- Robot head -->
+      <rect x="26" y="18" width="28" height="24" rx="5" fill="#2255aa"/>
+      <!-- Robot eyes -->
+      <circle cx="33" cy="27" r="4" fill="#00d4ff" opacity="0.9"/>
+      <circle cx="47" cy="27" r="4" fill="#00d4ff" opacity="0.9"/>
+      <circle cx="33" cy="27" r="2" fill="#ffffff"/>
+      <circle cx="47" cy="27" r="2" fill="#ffffff"/>
+      <!-- Robot mouth / smile -->
+      <path d="M34 35 Q40 39 46 35" stroke="#00ff88" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Robot body/clipboard -->
+      <rect x="28" y="44" width="24" height="18" rx="3" fill="#e8e8f0"/>
+      <!-- Checklist lines -->
+      <line x1="35" y1="50" x2="46" y2="50" stroke="#ccccdd" stroke-width="2"/>
+      <line x1="35" y1="55" x2="46" y2="55" stroke="#ccccdd" stroke-width="2"/>
+      <line x1="35" y1="60" x2="42" y2="60" stroke="#ccccdd" stroke-width="2"/>
+      <!-- Green checkmarks -->
+      <polyline points="31,49 33,51 37,47" stroke="#00cc55" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <polyline points="31,54 33,56 37,52" stroke="#00cc55" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Diagonal NO slash -->
+      <line x1="8" y1="8" x2="72" y2="72" stroke="#ff2222" stroke-width="6" stroke-linecap="round" opacity="0.0"/>
+      <!-- Antennas -->
+      <line x1="32" y1="18" x2="28" y2="12" stroke="#2255aa" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="27" cy="11" r="2.5" fill="#00d4ff"/>
+      <line x1="48" y1="18" x2="52" y2="12" stroke="#2255aa" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="53" cy="11" r="2.5" fill="#00d4ff"/>
+    </svg>
+    <span class="brand-name">
+      <span class="procr">Procrasti</span><span class="asti"></span><span class="no">NO</span>
+    </span>
+    <span class="version">v2.0</span>
+  </div>
+  <div class="status-badge">
+    <div class="status-dot" id="status-dot"></div>
+    <span class="status-label" id="status-label">SETTING UP</span>
+  </div>
+</div>
+
+<!-- ── Onboarding chat overlay ── -->
+<div id="onboarding">
+  <div class="onboard-box">
+    <div class="onboard-header">
+      <svg class="onboard-logo" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="38" fill="#cc1111" opacity="0.9"/>
+        <circle cx="40" cy="40" r="30" fill="#1a2a4a"/>
+        <rect x="26" y="18" width="28" height="24" rx="5" fill="#2255aa"/>
+        <circle cx="33" cy="27" r="4" fill="#00d4ff" opacity="0.9"/>
+        <circle cx="47" cy="27" r="4" fill="#00d4ff" opacity="0.9"/>
+        <circle cx="33" cy="27" r="2" fill="#ffffff"/>
+        <circle cx="47" cy="27" r="2" fill="#ffffff"/>
+        <path d="M34 35 Q40 39 46 35" stroke="#00ff88" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <rect x="28" y="44" width="24" height="18" rx="3" fill="#e8e8f0"/>
+        <line x1="35" y1="50" x2="46" y2="50" stroke="#ccccdd" stroke-width="2"/>
+        <line x1="35" y1="55" x2="46" y2="55" stroke="#ccccdd" stroke-width="2"/>
+        <polyline points="31,49 33,51 37,47" stroke="#00cc55" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <polyline points="31,54 33,56 37,52" stroke="#00cc55" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <line x1="32" y1="18" x2="28" y2="12" stroke="#2255aa" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="27" cy="11" r="2.5" fill="#00d4ff"/>
+        <line x1="48" y1="18" x2="52" y2="12" stroke="#2255aa" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="53" cy="11" r="2.5" fill="#00d4ff"/>
+      </svg>
+      <div>
+        <div class="onboard-title">
+          <span class="procr">Procrasti</span><span class="no">NO</span>
+        </div>
+        <div class="onboard-subtitle">Behavior Analyzer · Plan Setup</div>
+      </div>
+      <div class="step-indicator" id="step-indicator">
+        <div class="step-dot active" id="sdot-0"></div>
+        <div class="step-dot" id="sdot-1"></div>
+        <div class="step-dot" id="sdot-2"></div>
+        <div class="step-dot" id="sdot-3"></div>
+      </div>
+    </div>
+
+    <div class="chat-history" id="ob-chat"></div>
+
+    <div class="onboard-input-row">
+      <input class="onboard-input" id="ob-input" type="text" placeholder="Type your answer…" autocomplete="off"/>
+      <button class="btn-ob-send" id="ob-send" onclick="obSend()">SEND →</button>
+    </div>
+
+    <button class="btn-start-session" id="btn-start-session" onclick="launchDashboard()">
+      🚀 START MY SESSION
+    </button>
+  </div>
+</div>
+
+<!-- ── Main dashboard ── -->
+<div id="dashboard">
+<div class="main">
+
+  <!-- Plan summary pill -->
+  <div class="plan-pill" id="plan-pill">
+    <span>📋 <strong>Task:</strong> <span id="pill-task">—</span></span>
+    <span>⏱ <strong>Focus:</strong> <span id="pill-focus">25m</span></span>
+    <span>☕ <strong>Break:</strong> <span id="pill-break">5m</span></span>
+    <span>🔁 <strong>Sessions:</strong> <span id="pill-sessions">—</span></span>
+    <span>🔋 <strong>Energy:</strong> <span id="pill-energy">—</span></span>
+  </div>
+
+  <!-- Agent cards -->
+  <div class="agents-row">
+    <div class="agent-card" id="card-behavior">
+      <div class="agent-header">
+        <div class="agent-title"><span class="agent-icon">👀</span>Behavior Analyzer</div>
+        <span class="badge badge-standby" id="badge-behavior">STANDBY</span>
+      </div>
+      <div class="agent-desc">Monitors user activity and focus patterns</div>
+      <div class="agent-stat">
+        Inactive: <span class="stat-cyan" id="stat-inactive">0s</span> |
+        Distractions: <span class="stat-cyan" id="stat-distractions">0</span>
+      </div>
+    </div>
+    <div class="agent-card" id="card-planner">
+      <div class="agent-header">
+        <div class="agent-title"><span class="agent-icon">⏱</span>Focus Planner</div>
+        <span class="badge badge-standby" id="badge-planner">STANDBY</span>
+      </div>
+      <div class="agent-desc">Manages personalized session &amp; break cycles</div>
+      <div class="agent-stat stat-green" id="stat-planner">—</div>
+    </div>
+    <div class="agent-card" id="card-motivation">
+      <div class="agent-header">
+        <div class="agent-title"><span class="agent-icon">💬</span>Motivation</div>
+        <span class="badge badge-standby" id="badge-motivation">STANDBY</span>
+      </div>
+      <div class="agent-desc">Sends encouragement and focus reminders</div>
+      <div class="agent-stat stat-green" id="stat-motivation">0 messages sent</div>
+    </div>
+    <div class="agent-card" id="card-control">
+      <div class="agent-header">
+        <div class="agent-title"><span class="agent-icon">🚫</span>Control Agent</div>
+        <span class="badge badge-standby" id="badge-control">STANDBY</span>
+      </div>
+      <div class="agent-desc">Blocks distractions during focus sessions</div>
+      <div class="agent-stat stat-red" id="stat-control">Blocked: 0 attempts</div>
+    </div>
+  </div>
+
+  <!-- Bottom grid -->
+  <div class="bottom-grid">
+
+    <!-- Timer -->
+    <div class="timer-panel">
+      <div class="timer-ring">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <circle class="ring-bg" cx="90" cy="90" r="80"/>
+          <circle class="ring-fill" id="ring-fill" cx="90" cy="90" r="80"/>
+        </svg>
+        <div class="timer-inner">
+          <div class="timer-display" id="timer-display">--:--</div>
+          <div class="timer-mode" id="timer-mode">READY</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-start" id="btn-start" onclick="toggleSession()">START</button>
+        <button class="btn btn-reset" onclick="resetSession()">RESET</button>
+      </div>
+    </div>
+
+    <!-- Right side -->
+    <div class="right-panel">
+
+      <!-- Log feed -->
+      <div class="log-panel">
+        <div class="panel-header">
+          <div class="panel-dot"></div>
+          <span class="panel-title">Agent Log Feed</span>
+        </div>
+        <div class="log-body" id="log-body">
+          <span class="log-empty">Session ready — hit START to begin.</span>
+        </div>
+      </div>
+
+      <!-- Architecture -->
+      <div class="arch-panel">
+        <div class="panel-header">
+          <span style="font-size:14px;">🔀</span>
+          <span class="panel-title">Agent Architecture</span>
+        </div>
+        <div class="arch-body">
+          <div class="arch-line">
+            <span class="arch-prefix">├─ </span>
+            <span class="arch-name-behavior">Behavior Analyzer</span>
+            <span class="arch-arrow"> ──→ </span>
+            <span class="arch-desc">onboards user + detects focus/idle/distracted</span>
+          </div>
+          <div class="arch-line">
+            <span class="arch-prefix">├─ </span>
+            <span class="arch-name-planner">Focus Planner</span>
+            <span class="arch-arrow"> ──────→ </span>
+            <span class="arch-desc">runs personalized cycles</span>
+          </div>
+          <div class="arch-line">
+            <span class="arch-prefix">├─ </span>
+            <span class="arch-name-motivation">Motivation Agent</span>
+            <span class="arch-arrow"> ──→ </span>
+            <span class="arch-desc">sends contextual messages</span>
+          </div>
+          <div class="arch-line">
+            <span class="arch-prefix">└─ </span>
+            <span class="arch-name-control">Control Agent</span>
+            <span class="arch-arrow"> ──────→ </span>
+            <span class="arch-desc" id="arch-control-status">standby</span>
+          </div>
+          <div class="arch-note">↺ ReAct pattern: Observe → Think → Act → Observe</div>
+        </div>
+      </div>
+
+      <!-- Runtime chat -->
+      <div class="input-panel">
+        <div class="input-label">// Talk to the Behavior Analyzer during your session</div>
+        <div class="input-row">
+          <input class="chat-input" id="chat-input" type="text"
+            placeholder='e.g. "I\'m distracted", "need a break", "I\'m behind"...'/>
+          <button class="btn-send" onclick="sendMessage()">SEND →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── Agent scripts loaded from /agents/ folder ── -->
+<script src="agents/behavior.js"></script>
+<script src="agents/planner.js"></script>
+<script src="agents/motivation.js"></script>
+<script src="agents/control.js"></script>
+
+<script>
+// ── Global session state ───────────────────────────────────────────────────────
+window.S = {
+  running: false,
+  isBreak: false,
+  totalSecs: 25 * 60,
+  secsLeft: 25 * 60,
+  sessionsCompleted: 0,
+  distractionCount: 0,
+  overridesLeft: 3,
+  msgCount: 0,
+  blockAttempts: 0,
+  inactiveSecs: 0,
+  interval: null,
+  inactiveInterval: null,
+};
+
+const CIRCUMFERENCE = 2 * Math.PI * 80;
+
+// ── Onboarding chat logic ─────────────────────────────────────────────────────
+const OB = BehaviorAgent.onboarding;
+let obWaitingForConfirm = false;
+let obPendingConfig = null;
+
+function obAddBubble(text, type) {
+  const chat = document.getElementById("ob-chat");
+  const b = document.createElement("div");
+  b.className = "bubble " + type;
+  b.textContent = text;
+  chat.appendChild(b);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function obShowTyping() {
+  const chat = document.getElementById("ob-chat");
+  const t = document.createElement("div");
+  t.className = "bot-typing";
+  t.id = "ob-typing";
+  t.innerHTML = `<span>Analyzing…</span><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  chat.appendChild(t);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function obHideTyping() {
+  const el = document.getElementById("ob-typing");
+  if (el) el.remove();
+}
+
+function obBotSay(text, type = "bot", delay = 600) {
+  document.getElementById("ob-input").disabled = true;
+  document.getElementById("ob-send").disabled = true;
+  obShowTyping();
+  return new Promise(res => setTimeout(() => {
+    obHideTyping();
+    obAddBubble(text, type);
+    document.getElementById("ob-input").disabled = false;
+    document.getElementById("ob-send").disabled = false;
+    document.getElementById("ob-input").focus();
+    res();
+  }, delay));
+}
+
+function obUpdateDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById("sdot-" + i);
+    if (i < OB.step) d.className = "step-dot done";
+    else if (i === OB.step) d.className = "step-dot active";
+    else d.className = "step-dot";
+  }
+}
+
+async function obSend() {
+  const input = document.getElementById("ob-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  obAddBubble(text, "user");
+
+  // Confirmation step
+  if (obWaitingForConfirm) {
+    const lower = text.toLowerCase();
+    if (lower.includes("yes") || lower.includes("great") || lower.includes("ok") ||
+        lower.includes("good") || lower.includes("perfect") || lower.includes("go") ||
+        lower.includes("start") || lower.includes("sure") || lower.includes("yep")) {
+      // Confirmed!
+      await obBotSay("Perfect! 🚀 Your session is locked and loaded. Hit the button below when you're ready!", "bot");
+      document.getElementById("btn-start-session").style.display = "block";
+      document.getElementById("ob-input").disabled = true;
+      document.getElementById("ob-send").disabled = true;
+    } else {
+      // User wants changes — restart questions
+      obWaitingForConfirm = false;
+      obPendingConfig = null;
+      OB.step = 0;
+      OB.data = { totalMinutes: null, workMinutes: null, taskType: null, energyLevel: null };
+      obUpdateDots();
+      await obBotSay("No problem! Let's redo it. " + OB.script[0].ask(OB.data));
+    }
+    return;
+  }
+
+  // Normal step flow
+  const stepDef = OB.script[OB.step];
+  const ok = stepDef.parse(text, OB.data);
+
+  if (!ok) {
+    await obBotSay(stepDef.retry, "bot", 400);
+    return;
+  }
+
+  OB.step++;
+  obUpdateDots();
+
+  if (OB.step < OB.script.length) {
+    await obBotSay(OB.script[OB.step].ask(OB.data));
+  } else {
+    // All data collected — build plan
+    const { summary, config } = OB.buildPlan(OB.data);
+    obPendingConfig = config;
+    obWaitingForConfirm = true;
+    await obBotSay(summary, "plan", 800);
+  }
+}
+
+// ── Launch dashboard after onboarding ────────────────────────────────────────
+function launchDashboard() {
+  if (!obPendingConfig) return;
+
+  // Apply plan to Planner agent
+  PlannerAgent.applyPlan(obPendingConfig);
+
+  // Update plan pill
+  document.getElementById("pill-task").textContent    = obPendingConfig.taskType;
+  document.getElementById("pill-focus").textContent   = obPendingConfig.focusDur + "m";
+  document.getElementById("pill-break").textContent   = obPendingConfig.breakDur + "m";
+  document.getElementById("pill-sessions").textContent = obPendingConfig.sessions;
+  document.getElementById("pill-energy").textContent  = obPendingConfig.energyLevel;
+
+  // Update planner stat
+  updateStat("stat-planner", `${obPendingConfig.focusDur}m focus / ${obPendingConfig.breakDur}m break`, "stat-green");
+
+  // Set initial timer
+  window.S.secsLeft  = obPendingConfig.focusDur * 60;
+  window.S.totalSecs = obPendingConfig.focusDur * 60;
+
+  // Show dashboard
+  document.getElementById("onboarding").style.display = "none";
+  document.getElementById("dashboard").style.display  = "block";
+  setTopStatus("READY", "green");
+  updateTimerUI();
+
+  // Log plan
+  log("behavior", `Onboarding complete. Task: ${obPendingConfig.taskType}.`);
+  log("planner", `Plan: ${obPendingConfig.focusDur}m focus / ${obPendingConfig.breakDur}m break × ${obPendingConfig.sessions} sessions.`);
+  MotivationAgent.send("plan_confirmed");
+}
+
+// ── Timer ─────────────────────────────────────────────────────────────────────
+function toggleSession() {
+  if (!window.S.running) startSession();
+  else pauseSession();
+}
+
+function startSession() {
+  window.S.running = true;
+  document.getElementById("btn-start").textContent = "PAUSE";
+  setTopStatus("FOCUSED", "green");
+
+  if (!window.S.isBreak) {
+    setCardState("card-behavior","active","badge-behavior","ACTIVE","badge-active");
+    setCardState("card-planner","active","badge-planner","ACTIVE","badge-active");
+    ControlAgent.activate();
+    MotivationAgent.send("start");
+    log("behavior","Session started. Monitoring active.");
+    log("planner",`Plan: ${PlannerAgent.getFocusDur()}m focus → ${PlannerAgent.getBreakDur()}m break.`);
+  }
+
+  window.S.interval = setInterval(tick, 1000);
+
+  window.S.inactiveSecs = 0;
+  window.S.inactiveInterval = setInterval(() => {
+    window.S.inactiveSecs++;
+    updateStat("stat-inactive",`${window.S.inactiveSecs}s`,"stat-cyan");
+    if (window.S.inactiveSecs === 120 && !window.S.isBreak) {
+      log("behavior","Inactivity detected (2 min). Alerting.");
+      MotivationAgent.send("inactivity");
+    }
+  }, 1000);
+
+  resetInactivity();
+}
+
+function pauseSession() {
+  window.S.running = false;
+  clearInterval(window.S.interval);
+  clearInterval(window.S.inactiveInterval);
+  document.getElementById("btn-start").textContent = "RESUME";
+  setTopStatus("PAUSED","amber");
+  log("behavior","Session paused.");
+}
+
+function resetSession() {
+  clearInterval(window.S.interval);
+  clearInterval(window.S.inactiveInterval);
+  const focusDur = PlannerAgent.getRawConfig().focusDur;
+  window.S.running = false;
+  window.S.isBreak = false;
+  window.S.secsLeft  = focusDur * 60;
+  window.S.totalSecs = focusDur * 60;
+  updateTimerUI();
+  document.getElementById("btn-start").textContent = "START";
+  setTopStatus("READY","green");
+  ControlAgent.lift();
+  ["card-behavior","card-planner","card-motivation","card-control"].forEach(id => {
+    const agent = id.split("-")[1];
+    setCardState(id,"","badge-"+agent,"STANDBY","badge-standby");
+  });
+  document.getElementById("log-body").innerHTML = `<span class="log-empty">Session reset. Ready to go again.</span>`;
+  updateStat("stat-inactive","0s","stat-cyan");
+  updateStat("stat-distractions","0","stat-cyan");
+}
+
+function tick() {
+  if (window.S.secsLeft > 0) {
+    window.S.secsLeft--;
+    updateTimerUI();
+  } else {
+    onPhaseEnd();
+  }
+}
+
+function onPhaseEnd() {
+  clearInterval(window.S.interval);
+  clearInterval(window.S.inactiveInterval);
+  window.S.running = false;
+
+  if (!window.S.isBreak) {
+    window.S.sessionsCompleted++;
+    const breakDur = PlannerAgent.getBreakDur();
+    window.S.isBreak  = true;
+    window.S.secsLeft = breakDur * 60;
+    window.S.totalSecs = breakDur * 60;
+    ControlAgent.lift();
+    MotivationAgent.send("session_complete");
+    log("planner",`Session ${window.S.sessionsCompleted} done. Break: ${breakDur}min.`);
+    setTimerMode("BREAK","break");
+    setTopStatus("BREAK","green");
+    updateStat("stat-planner",`${PlannerAgent.getFocusDur()}m focus / ${breakDur}m break`,"stat-green");
+  } else {
+    const focusDur = PlannerAgent.getFocusDur();
+    window.S.isBreak  = false;
+    window.S.secsLeft = focusDur * 60;
+    window.S.totalSecs = focusDur * 60;
+    MotivationAgent.send("break_over");
+    log("planner",`Break over. Next focus: ${focusDur}min.`);
+    setTimerMode("FOCUS MODE","");
+  }
+
+  updateTimerUI();
+  document.getElementById("btn-start").textContent = "START";
+}
+
+function updateTimerUI() {
+  const m = String(Math.floor(window.S.secsLeft/60)).padStart(2,"0");
+  const s = String(window.S.secsLeft%60).padStart(2,"0");
+  const timeStr = m+":"+s;
+  document.getElementById("timer-display").textContent = timeStr;
+  const bl = document.getElementById("bl-time");
+  if (bl) bl.textContent = timeStr;
+
+  const pct = 1 - window.S.secsLeft/window.S.totalSecs;
+  const offset = CIRCUMFERENCE - pct * CIRCUMFERENCE;
+  document.getElementById("ring-fill").style.strokeDashoffset = offset;
+  const bar = document.getElementById("bl-bar");
+  if (bar) bar.style.width = (pct*100).toFixed(1)+"%";
+}
+
+function setTimerMode(label, cls) {
+  const el = document.getElementById("timer-mode");
+  el.textContent = label;
+  el.className = "timer-mode"+(cls?" "+cls:"");
+  const ring = document.getElementById("ring-fill");
+  ring.className = "ring-fill"+(cls==="break"?" break-mode":"");
+}
+
+// ── Runtime chat → Behavior Agent ────────────────────────────────────────────
+function sendMessage() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  resetInactivity();
+
+  const { state, confidence } = BehaviorAgent.classify(text);
+  log("behavior",`Input: "${text}" → ${state} (${Math.round(confidence*100)}% confidence)`);
+
+  if (state==="distracted") {
+    window.S.distractionCount++;
+    updateStat("stat-distractions",window.S.distractionCount,"stat-cyan");
+    setCardState("card-behavior","warning","badge-behavior","ALERT","badge-warn");
+    log("planner","Distraction logged. Shortening next session by 2min.");
+    MotivationAgent.send("distracted");
+    setTopStatus("DISTRACTED","amber");
+  } else if (state==="break_request") {
+    ControlAgent.lift();
+    log("planner","Early break requested. Adjusting schedule.");
+    MotivationAgent.send("break_request");
+  } else if (state==="behind") {
+    log("planner","User behind schedule. Recalculating plan.");
+    MotivationAgent.send("behind");
+  } else if (state==="focused") {
+    setCardState("card-behavior","active","badge-behavior","ACTIVE","badge-active");
+    MotivationAgent.send("start");
+    setTopStatus("FOCUSED","green");
+  } else {
+    log("behavior","Message noted. State: neutral.");
+  }
+}
+
+// ── Override ──────────────────────────────────────────────────────────────────
+function emergencyOverride() {
+  if (window.S.overridesLeft<=0) return;
+  window.S.overridesLeft--;
+  document.getElementById("bl-overrides").textContent = window.S.overridesLeft;
+  ControlAgent.lift();
+  log("control",`Emergency override used. ${window.S.overridesLeft} remaining.`);
+  log("behavior","Override detected. Monitoring sensitivity increased.");
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const logEntries = [];
+function log(agent, msg) {
+  const now = new Date();
+  const t = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,"0")).join(":");
+  logEntries.unshift({t,agent,msg});
+  renderLog();
+}
+
+function renderLog() {
+  const body = document.getElementById("log-body");
+  if (!body) return;
+  body.innerHTML = logEntries.slice(0,30).map(e =>
+    `<div class="log-entry"><span class="log-time">[${e.t}]</span> <span class="log-agent-${e.agent}">[${e.agent.toUpperCase()}]</span> <span class="log-msg">${e.msg}</span></div>`
+  ).join("");
+}
+
+function setCardState(cardId,cardCls,badgeId,badgeText,badgeCls) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  card.className = "agent-card"+(cardCls?" "+cardCls:"");
+  const badge = document.getElementById(badgeId);
+  if (!badge) return;
+  badge.className = "badge "+badgeCls;
+  badge.textContent = badgeText;
+}
+
+function updateStat(id,val,cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  el.className = cls;
+}
+
+function setTopStatus(label,color) {
+  const colors = {green:"var(--green)",amber:"var(--amber)",red:"var(--red)",cyan:"var(--cyan)"};
+  const col = colors[color]||"var(--green)";
+  const lbl = document.getElementById("status-label");
+  const dot = document.getElementById("status-dot");
+  if (lbl) { lbl.textContent=label; lbl.style.color=col; }
+  if (dot) { dot.style.background=col; dot.style.boxShadow=`0 0 8px ${col}`; }
+}
+
+function resetInactivity() {
+  window.S.inactiveSecs = 0;
+  updateStat("stat-inactive","0s","stat-cyan");
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (e.key==="Enter") {
+    if (document.activeElement===document.getElementById("ob-input")) obSend();
+    else if (document.activeElement===document.getElementById("chat-input")) sendMessage();
+  }
+});
+
+// ── Init onboarding ───────────────────────────────────────────────────────────
+(async () => {
+  await obBotSay(OB.script[0].ask(OB.data), "bot", 800);
+})();
+
+// Init ring dimensions
+document.getElementById("ring-fill").style.strokeDasharray  = CIRCUMFERENCE;
+document.getElementById("ring-fill").style.strokeDashoffset = CIRCUMFERENCE;
+</script>
+
+</body>
+</html>
