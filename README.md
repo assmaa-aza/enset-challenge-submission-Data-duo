@@ -1,4 +1,5 @@
-#google drive with all what you need to know about the solution : https://drive.google.com/drive/folders/1X9MgghlyF74YU1z5GMikZiSxXT7K9PyM?usp=drive_link
+#google drive with all what you need to know about the solution : 
+https://drive.google.com/drive/folders/1X9MgghlyF74YU1z5GMikZiSxXT7K9PyM
 # enset-challenge-submission-Data-duo
 
 # ProcrastiNO 🤖
